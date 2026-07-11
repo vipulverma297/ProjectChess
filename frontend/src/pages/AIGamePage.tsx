@@ -11,7 +11,6 @@ import PlayerCard from '../components/PlayerCard';
 import MoveHistory from '../components/MoveHistory';
 import GameControls from '../components/GameControls';
 import MemeCompanion from '../components/MemeCompanion';
-import { socket } from '../store/middleware/socketMiddleware';
 import type { TimeControl } from '../types/chess';
 
 const RESULT_LABEL: Record<string, string> = {
@@ -310,26 +309,6 @@ const AIGamePage = ({ mode }: AIGamePageProps) => {
           {levelInfo.emoji} Stockfish — Level {aiLevel}
         </div>
         <GameControls showDrawControls={false} />
-
-        {/* Client Debug Panel */}
-        <div style={{
-          marginTop: '20px',
-          padding: '12px',
-          background: 'rgba(255,255,255,0.05)',
-          border: '1px solid rgba(255,255,255,0.1)',
-          borderRadius: '8px',
-          fontSize: '0.8rem',
-          color: '#aaa',
-          fontFamily: 'monospace'
-        }}>
-          <h4 style={{ color: '#d4a843', marginBottom: '8px', borderBottom: '1px solid rgba(212,168,67,0.2)', paddingBottom: '4px' }}>🐞 Client Debug</h4>
-          <div>Room: {roomId || 'null'}</div>
-          <div>Player Color: {color || 'null'}</div>
-          <div>Game Status: {status}</div>
-          <div>Turn: {turn}</div>
-          <div>My Turn: {status === 'playing' && color === turn ? '✅ YES' : '❌ NO'}</div>
-          <div>Socket Connected: {socket.connected ? '✅ YES' : '❌ NO'}</div>
-        </div>
       </aside>
 
       {/* Mobile Bottom Bar (Mobile only) */}

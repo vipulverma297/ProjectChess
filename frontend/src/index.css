@@ -865,28 +865,29 @@ body {
 /* ─── Meme Companion Popup ────────────────────────────────────────────────────── */
 .meme-companion {
   position: fixed;
-  bottom: 24px;
-  right: 24px;
-  width: 320px;
-  background: rgba(22, 15, 5, 0.88);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(212, 168, 67, 0.35);
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 380px;
+  background: rgba(22, 15, 5, 0.93);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(212, 168, 67, 0.45);
   border-radius: var(--radius-lg);
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.05);
-  z-index: 200;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(212,168,67,0.08), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  z-index: 9999;
   overflow: hidden;
-  animation: slideInMeme 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: slideInMeme 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   display: flex;
   flex-direction: column;
 }
 
 @keyframes slideInMeme {
   from {
-    transform: translateY(50px) scale(0.95);
+    transform: translateX(-50%) translateY(-24px) scale(0.96);
     opacity: 0;
   }
   to {
-    transform: translateY(0) scale(1);
+    transform: translateX(-50%) translateY(0) scale(1);
     opacity: 1;
   }
 }
@@ -969,17 +970,18 @@ body {
 
 @media (max-width: 768px) {
   .meme-companion {
-    bottom: 76px;
+    top: 12px;
     left: 12px;
     right: 12px;
     width: auto;
     max-width: none;
+    transform: none;
     animation: slideInMemeMobile 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
 
   @keyframes slideInMemeMobile {
     from {
-      transform: translateY(30px);
+      transform: translateY(-20px);
       opacity: 0;
     }
     to {
