@@ -2,47 +2,46 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.tsx'
 
-// ─── Forward Client Console to Backend ──────────────────────────────────────
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || (typeof window !== 'undefined' && window.location.hostname !== 'localhost' ? window.location.origin : 'http://localhost:3001');
+const IS_DEV = import.meta.env.DEV;
 
-function sendClientLog(type: string, message: string, args?: unknown) {
+// ─── Forward Client Errors to Backend (Production: errors only, throttled) ───
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || window.location.origin;
+
+// Throttle: max 1 error log per 5 seconds to avoid spamming
+let lastErrorSent = 0;
+function sendClientError(message: string) {
+  const now = Date.now();
+  if (now - lastErrorSent < 5000) return;
+  lastErrorSent = now;
   fetch(`${BACKEND_URL}/api/log`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ type, message, args }),
+    body: JSON.stringify({ type: 'error', message }),
   }).catch(() => {});
 }
 
-// Override console methods
-const originalLog = console.log;
-const originalError = console.error;
-const originalWarn = console.warn;
+// In development only: override console to forward all logs to backend
+if (IS_DEV) {
+  const originalLog = console.log;
+  const originalError = console.error;
+  const originalWarn = console.warn;
 
-console.log = (...args) => {
-  originalLog(...args);
-  sendClientLog('log', args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' '));
-};
+  const fmt = (args: unknown[]) =>
+    args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' ');
 
-console.error = (...args) => {
-  originalError(...args);
-  sendClientLog('error', args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' '));
-};
+  console.log = (...args) => { originalLog(...args); sendClientError('[log] ' + fmt(args)); };
+  console.error = (...args) => { originalError(...args); sendClientError('[error] ' + fmt(args)); };
+  console.warn = (...args) => { originalWarn(...args); sendClientError('[warn] ' + fmt(args)); };
+}
 
-console.warn = (...args) => {
-  originalWarn(...args);
-  sendClientLog('warn', args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' '));
-};
-
-// Global uncaught errors
+// Always capture uncaught errors (throttled)
 window.addEventListener('error', (event) => {
-  sendClientLog('error', `Uncaught exception: ${event.message} at ${event.filename}:${event.lineno}:${event.colno}`);
+  sendClientError(`Uncaught: ${event.message} at ${event.filename}:${event.lineno}`);
 });
 
 window.addEventListener('unhandledrejection', (event) => {
-  sendClientLog('error', `Unhandled Promise Rejection: ${String(event.reason)}`);
+  sendClientError(`UnhandledRejection: ${String(event.reason)}`);
 });
-
-console.log('🚀 Client logger initialized and connected to backend!');
 
 createRoot(document.getElementById('root')!).render(
   <App />
