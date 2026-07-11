@@ -3,7 +3,7 @@ import './index.css'
 import App from './App.tsx'
 
 // ─── Forward Client Console to Backend ──────────────────────────────────────
-const BACKEND_URL = 'http://localhost:3001';
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || (typeof window !== 'undefined' && window.location.hostname !== 'localhost' ? window.location.origin : 'http://localhost:3001');
 
 function sendClientLog(type: string, message: string, args?: unknown) {
   fetch(`${BACKEND_URL}/api/log`, {

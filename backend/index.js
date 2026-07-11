@@ -14,15 +14,21 @@ const allowedOrigins = [
   process.env.FRONTEND_URL
 ].filter(Boolean);
 
+const checkOrigin = (origin, callback) => {
+  if (!origin) return callback(null, true);
+  const isAllowed = allowedOrigins.some(allowed => origin.startsWith(allowed)) ||
+                    origin.includes('onrender.com') ||
+                    (process.env.RENDER_EXTERNAL_URL && origin.startsWith(process.env.RENDER_EXTERNAL_URL));
+  if (isAllowed) {
+    callback(null, true);
+  } else {
+    callback(new Error(`Not allowed by CORS: ${origin}`));
+  }
+};
+
 const io = new Server(server, {
   cors: {
-    origin: (origin, callback) => {
-      if (!origin || allowedOrigins.some(allowed => origin.startsWith(allowed))) {
-        callback(null, true);
-      } else {
-        callback(new Error('Not allowed by CORS'));
-      }
-    },
+    origin: checkOrigin,
     methods: ['GET', 'POST'],
     credentials: true
   },
@@ -66,13 +72,7 @@ const frontendDistPath = path.join(__dirname, '../frontend/dist');
 app.use(express.static(frontendDistPath));
 
 app.use(cors({
-  origin: (origin, callback) => {
-    if (!origin || allowedOrigins.some(allowed => origin.startsWith(allowed))) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
+  origin: checkOrigin,
   credentials: true
 }));
 app.use(express.json());
