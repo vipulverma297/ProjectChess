@@ -89,7 +89,7 @@ app.post('/api/log', (req, res) => {
 });
 
 // Fallback to React Router client index.html
-app.get('/:pathMatch*', (req, res) => {
+app.get('/{*splat}', (req, res) => {
   res.sendFile(path.join(frontendDistPath, 'index.html'), (err) => {
     if (err) {
       res.status(200).send('ProjectChess backend is running. Build the frontend/dist folder to serve the client here.');
