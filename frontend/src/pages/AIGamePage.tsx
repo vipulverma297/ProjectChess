@@ -322,6 +322,7 @@ const AIGamePage = ({ mode }: AIGamePageProps) => {
         <div className="mobile-action-buttons">
           <button className="btn btn--primary btn--sm" onClick={() => { setShowMobileHistory(true); setShowMobileOptions(false); }}>📋 History</button>
           <button className="btn btn--secondary btn--sm" onClick={() => { setShowMobileOptions(!showMobileOptions); setShowMobileHistory(false); }}>⚙️ Options</button>
+          <button className="btn btn--ghost btn--sm" onClick={handleBackToHome}>🏠 Home</button>
         </div>
       </div>
 
