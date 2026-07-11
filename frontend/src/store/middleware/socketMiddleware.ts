@@ -59,10 +59,8 @@ export function attachSocketListeners(dispatch: (action: unknown) => void) {
   socket.connect();
 
   socket.on('connect', () => {
-    console.log('[socketMiddleware] Socket connected! ID:', socket.id);
     const state = _getState?.() as any;
     if (state?.room?.roomId && state?.player?.playerName && state?.game?.status !== 'idle' && state?.game?.status !== 'over') {
-      console.log('[socketMiddleware] Reconnecting to active game...', state.room.roomId, state.player.playerName);
       socket.emit('reconnect_game', {
         roomId: state.room.roomId,
         playerName: state.player.playerName,
@@ -84,7 +82,6 @@ export function attachSocketListeners(dispatch: (action: unknown) => void) {
     isHost: boolean;
     moves: any[];
   }) => {
-    console.log('[socketMiddleware] Successfully reconnected to game:', data);
     dispatch(roomSynced({
       roomId: data.roomId,
       isHost: data.isHost,
@@ -99,7 +96,6 @@ export function attachSocketListeners(dispatch: (action: unknown) => void) {
   });
 
   socket.on('game_created', (data: GameCreatedPayload) => {
-    console.log('[socketMiddleware] Received "game_created" event:', JSON.stringify(data));
     dispatch(roomCreated({ roomId: data.roomId, timeControl: data.timeControl }));
     dispatch(setColor('w'));
     dispatch(initTimers({ white: data.timers.white, black: data.timers.black }));
@@ -107,7 +103,6 @@ export function attachSocketListeners(dispatch: (action: unknown) => void) {
   });
 
   socket.on('game_ready', (data: GameReadyPayload) => {
-    console.log('[socketMiddleware] Received "game_ready" event:', JSON.stringify(data));
     // We need to know if we are host (white) or joiner (black).
     // The host already has their color set to 'w' from game_created.
     // The joiner has no color set yet — use that as the signal.
@@ -133,7 +128,6 @@ export function attachSocketListeners(dispatch: (action: unknown) => void) {
   });
 
   socket.on('ai_game_ready', (data: AIGameReadyPayload) => {
-    console.log('[socketMiddleware] Received "ai_game_ready" event:', JSON.stringify(data));
     dispatch(aiRoomCreated({ roomId: data.roomId, aiLevel: data.aiLevel, timeControl: data.timeControl }));
     dispatch(setColor('w'));
     dispatch(setOpponentName(data.opponentName));
@@ -143,7 +137,6 @@ export function attachSocketListeners(dispatch: (action: unknown) => void) {
   });
 
   socket.on('move_made', (data: MoveMadePayload) => {
-    console.log('[socketMiddleware] Received "move_made" event:', JSON.stringify(data));
 
     const state = _getState?.() as any;
     const myColor = state?.player?.color;
@@ -175,13 +168,11 @@ export function attachSocketListeners(dispatch: (action: unknown) => void) {
   socket.on('timer_update', (data: TimerUpdatePayload) => {
     // Only log timer updates occasionally to prevent flooding
     if (data.white % 5 === 0 || data.black % 5 === 0) {
-      console.log('[socketMiddleware] Received "timer_update" event:', JSON.stringify(data));
     }
     dispatch(updateTimers(data));
   });
 
   socket.on('game_over', (data: GameOverPayload) => {
-    console.log('[socketMiddleware] Received "game_over" event:', JSON.stringify(data));
     dispatch(stopTimers());
     dispatch(gameOver(data));
 
@@ -193,12 +184,10 @@ export function attachSocketListeners(dispatch: (action: unknown) => void) {
   });
 
   socket.on('draw_offered', () => {
-    console.log('[socketMiddleware] Received "draw_offered" event');
     dispatch(drawOfferedByOpponent());
   });
 
   socket.on('draw_declined', () => {
-    console.log('[socketMiddleware] Received "draw_declined" event');
     dispatch(drawDeclinedAction());
   });
 
@@ -242,10 +231,8 @@ export const socketMiddleware: Middleware = () => (next) => (action) => {
   const event = EMIT_MAP[a.type];
   
   if (event) {
-    console.log('[socketMiddleware] Intercepted action:', a.type, 'Event:', event, 'Socket connected:', socket.connected, 'Payload:', JSON.stringify(a.payload));
     if (socket.connected) {
       socket.emit(event, a.payload);
-      console.log('[socketMiddleware] Emitted event:', event);
     } else {
       console.warn('[socketMiddleware] Failed to emit because socket is disconnected!');
     }

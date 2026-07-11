@@ -151,7 +151,6 @@ const AIGamePage = ({ mode }: AIGamePageProps) => {
   }, [handleStepBack, handleStepForward]);
 
   const handleStart = () => {
-    console.log('[AIGamePage] handleStart clicked. Name:', localName, 'aiLevel:', aiLevel, 'timeControl:', timeControl);
     const trimmed = localName.trim();
     if (!trimmed) {
       console.warn('[AIGamePage] handleStart blocked: name is empty');
@@ -165,7 +164,6 @@ const AIGamePage = ({ mode }: AIGamePageProps) => {
     }
     setNameError('');
     dispatch(setPlayerName(trimmed));
-    console.log('[AIGamePage] Dispatching createAIGame...');
     dispatch(createAIGame({ playerName: trimmed, aiLevel, timeControl }));
   };
 

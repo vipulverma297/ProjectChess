@@ -66,7 +66,6 @@ const ChessBoard2D = () => {
   const isLatestPosition = viewMoveIndex === null || viewMoveIndex >= moves.length;
   const myTurn = isPlaying && playerColor !== null && game.turn() === playerColor && isLatestPosition;
 
-  console.log('[ChessBoard2D] render - status:', status, 'isPlaying:', isPlaying, 'playerColor:', playerColor, 'game.turn:', game.turn(), 'myTurn:', myTurn, 'viewMoveIndex:', viewMoveIndex);
 
   // ── Stable Ref to avoid React Chessboard stale closures ───────────────────
   const stateRef = useRef({ moveFrom, playerColor, myTurn, fen: displayFen, roomId });
@@ -100,7 +99,6 @@ const ChessBoard2D = () => {
   // ── Attempt to dispatch a move; return true if legal ─────────────────────
   const tryMove = useCallback((from: SquareStr, to: SquareStr, promotion?: string) => {
     const { fen: currentFen, roomId: currentRoomId } = stateRef.current;
-    console.log('[ChessBoard2D] tryMove called:', from, '->', to, 'promotion:', promotion, 'roomId:', currentRoomId, 'fen:', currentFen);
     if (!currentRoomId) {
       console.warn('[ChessBoard2D] tryMove failed: roomId is null or undefined');
       return false;
@@ -110,7 +108,6 @@ const ChessBoard2D = () => {
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = testGame.move({ from, to, promotion } as any);
-      console.log('[ChessBoard2D] testGame.move legal check result:', result);
       if (!result) {
         console.warn('[ChessBoard2D] testGame.move returned false (illegal move)');
         return false;
@@ -120,7 +117,6 @@ const ChessBoard2D = () => {
       return false;
     }
 
-    console.log('[ChessBoard2D] Move is legal! Dispatching makeMove...');
     dispatch(makeMove({ roomId: currentRoomId, move: { from, to, promotion } }));
     return true;
   }, [dispatch]);
@@ -138,9 +134,7 @@ const ChessBoard2D = () => {
   // ── Click handler ─────────────────────────────────────────────────────────
   const onSquareClick = useCallback((square: SquareStr) => {
     const { myTurn: currentMyTurn, moveFrom: currentMoveFrom, playerColor: currentPlayerColor, fen: currentFen } = stateRef.current;
-    console.log('[ChessBoard2D] onSquareClick:', square, 'myTurn:', currentMyTurn, 'moveFrom:', currentMoveFrom);
     if (!currentMyTurn) {
-      console.log('[ChessBoard2D] click ignored: not my turn');
       return;
     }
 
@@ -150,7 +144,6 @@ const ChessBoard2D = () => {
     if (currentMoveFrom) {
       // Clicked the same square → deselect
       if (square === currentMoveFrom) {
-        console.log('[ChessBoard2D] Clicked same square, deselecting');
         setMoveFrom('');
         setOptionSquares({});
         return;
@@ -159,7 +152,6 @@ const ChessBoard2D = () => {
       // Clicked another own piece → re-select it
       const clickedPiece = currentGame.get(square as Parameters<typeof currentGame.get>[0]);
       if (clickedPiece && clickedPiece.color === currentPlayerColor) {
-        console.log('[ChessBoard2D] Clicked own piece, re-selecting:', square);
         const opts = buildOptionSquares(square);
         if (Object.keys(opts).length > 1) {
           setMoveFrom(square);
@@ -174,7 +166,6 @@ const ChessBoard2D = () => {
       // Check if square is a legal destination
       const opts = buildOptionSquares(currentMoveFrom);
       const isLegalDest = square in opts && square !== currentMoveFrom;
-      console.log('[ChessBoard2D] second click validation - isLegalDest:', isLegalDest, 'opts:', Object.keys(opts));
 
       if (!isLegalDest) {
         setMoveFrom('');
@@ -184,7 +175,6 @@ const ChessBoard2D = () => {
 
       // Promotion?
       if (isPromotion(currentMoveFrom, square)) {
-        console.log('[ChessBoard2D] Click triggered promotion');
         setPromotionFrom(currentMoveFrom);
         setPromotionTo(square);
         setShowPromotion(true);
@@ -202,14 +192,11 @@ const ChessBoard2D = () => {
 
     // ── FIRST CLICK (source) ────────────────────────────────────────────
     const piece = currentGame.get(square as Parameters<typeof currentGame.get>[0]);
-    console.log('[ChessBoard2D] First click on square:', square, 'piece:', piece);
     if (!piece || piece.color !== currentPlayerColor) {
-      console.log('[ChessBoard2D] Clicked empty square or opponent piece on first click');
       return;
     }
 
     const opts = buildOptionSquares(square);
-    console.log('[ChessBoard2D] Options for selected piece:', Object.keys(opts));
     // Only select if the piece actually has legal moves
     if (Object.keys(opts).length > 1) {
       setMoveFrom(square);
@@ -218,18 +205,15 @@ const ChessBoard2D = () => {
   }, [buildOptionSquares, isPromotion, tryMove]);
 
   // ── Drag-and-drop handler ─────────────────────────────────────────────────
-  const onPieceDrop = useCallback((sourceSquare: SquareStr, targetSquare: SquareStr, piece: string): boolean => {
+  const onPieceDrop = useCallback((sourceSquare: SquareStr, targetSquare: SquareStr, _piece: string): boolean => {
     const { myTurn: currentMyTurn } = stateRef.current;
-    console.log('[ChessBoard2D] onPieceDrop:', sourceSquare, '->', targetSquare, 'piece:', piece, 'myTurn:', currentMyTurn);
     if (!currentMyTurn) return false;
 
     // Promotion via drag → auto-queen
     if (isPromotion(sourceSquare, targetSquare)) {
-      console.log('[ChessBoard2D] Drag triggered promotion (auto-queen)');
       return tryMove(sourceSquare, targetSquare, 'q');
     }
     const ok = tryMove(sourceSquare, targetSquare);
-    console.log('[ChessBoard2D] onPieceDrop outcome:', ok);
     return ok;
   }, [isPromotion, tryMove]);
 
